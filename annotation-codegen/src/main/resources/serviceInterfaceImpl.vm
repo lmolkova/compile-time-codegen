@@ -1,0 +1,65 @@
+package ${packageName};
+
+#foreach($import in $imports)
+import $import;
+#end
+
+public class ${serviceInterfaceImplShortName} implements ${serviceInterfaceShortName} {
+    private static Map<HttpPipeline, GeneratedServiceAPI> INSTANCE_MAP = new HashMap<>();
+
+    private final HttpPipeline defaultPipeline;
+
+    public static GeneratedServiceAPI getInstance(final HttpPipeline defaultPipeline) {
+        return INSTANCE_MAP.computeIfAbsent(defaultPipeline, pipeline -> new GeneratedServiceAPIImpl(defaultPipeline));
+    }
+
+    private GeneratedServiceAPIImpl(HttpPipeline defaultPipeline) {
+        this.defaultPipeline = defaultPipeline;
+    }
+
+#foreach($method in $methods)
+    @Override public ${method.methodReturnType} ${method.methodName}(${method.getSimplifiedParameterString(true)}) {
+        #if ($method.methodReturnType != "void")
+        return ${method.methodName}(defaultPipeline, ${method.getSimplifiedParameterString(false)});
+        #else
+        ${method.methodName}(defaultPipeline, ${method.getSimplifiedParameterString(false)});
+        #end
+    }
+
+    public ${method.methodReturnType} ${method.methodName}(HttpPipeline pipeline, ${method.getSimplifiedParameterString(true)}) {
+        HttpRequest httpRequest = new HttpRequest(HttpMethod.${method.httpMethod}, "${method.endpoint}"); // FIXME endpoint is not correct
+
+        #if ($method.headers.size() > 0)
+        // set headers
+        HttpHeaders headers = new HttpHeaders();
+        #foreach($headerKey in $method.headers.keySet())
+        headers.add("${headerKey}", ${method.headers.get($headerKey)});
+        #end
+        httpRequest.setHeaders(headers);
+        #end
+
+        #if ($method.queryParams.size() > 0)
+        // create query string by concatenation
+        String queryString = "?";
+        #foreach($queryParamKey in $method.queryParams.keySet())
+        queryString += "${queryParamKey}=" + ${method.queryParams.get($queryParamKey)};
+        #end
+        httpRequest.setUrl("${method.endpoint}" + queryString);  // FIXME endpoint is not correct
+        #end
+
+        #if ($method.body)
+        // set the body
+        httpRequest.setBody(${method.body.parameterName});
+        #end
+
+        // send the request through the pipeline
+        HttpResponse response = pipeline.sendSync(httpRequest, Context.NONE);
+
+        #if ($method.methodReturnType != "void")
+        // TODO actual implementation!
+        return java.util.Arrays.asList("Hello", "World!");
+        #end
+    }
+
+#end
+}
