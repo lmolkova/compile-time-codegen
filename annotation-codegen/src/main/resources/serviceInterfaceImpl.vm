@@ -1,7 +1,7 @@
 package ${packageName};
 
 #foreach($import in $imports)
-import $import;
+    import $import;
 #end
 
 public class ${serviceInterfaceImplShortName} implements ${serviceInterfaceShortName} {
@@ -17,49 +17,49 @@ public class ${serviceInterfaceImplShortName} implements ${serviceInterfaceShort
         this.defaultPipeline = defaultPipeline;
     }
 
-#foreach($method in $methods)
-    @Override public ${method.methodReturnType} ${method.methodName}(${method.getSimplifiedParameterString(true)}) {
-        #if ($method.methodReturnType != "void")
-        return ${method.methodName}(defaultPipeline, ${method.getSimplifiedParameterString(false)});
-        #else
-        ${method.methodName}(defaultPipeline, ${method.getSimplifiedParameterString(false)});
-        #end
-    }
+    #foreach($method in $methods)
+        @Override public ${method.methodReturnType} ${method.methodName}(${method.getSimplifiedParameterString(true)}) {
+            #if ($method.methodReturnType != "void")
+                return ${method.methodName}(defaultPipeline, ${method.getSimplifiedParameterString(false)});
+            #else
+                ${method.methodName}(defaultPipeline, ${method.getSimplifiedParameterString(false)});
+            #end
+        }
 
-    public ${method.methodReturnType} ${method.methodName}(HttpPipeline pipeline, ${method.getSimplifiedParameterString(true)}) {
-        HttpRequest httpRequest = new HttpRequest(HttpMethod.${method.httpMethod}, "${method.endpoint}"); // FIXME endpoint is not correct
+        public ${method.methodReturnType} ${method.methodName}(HttpPipeline pipeline, ${method.getSimplifiedParameterString(true)}) {
+            HttpRequest httpRequest = new HttpRequest(HttpMethod.${method.httpMethod}, "${method.endpoint}"); // FIXME endpoint is not correct
 
-        #if ($method.headers.size() > 0)
-        // set headers
-        HttpHeaders headers = new HttpHeaders();
-        #foreach($headerKey in $method.headers.keySet())
-        headers.add("${headerKey}", ${method.headers.get($headerKey)});
-        #end
-        httpRequest.setHeaders(headers);
-        #end
+            #if ($method.headers.size() > 0)
+                // set headers
+                HttpHeaders headers = new HttpHeaders();
+                #foreach($headerKey in $method.headers.keySet())
+                    headers.add("${headerKey}", ${method.headers.get($headerKey)});
+                #end
+                httpRequest.setHeaders(headers);
+            #end
 
-        #if ($method.queryParams.size() > 0)
-        // create query string by concatenation
-        String queryString = "?";
-        #foreach($queryParamKey in $method.queryParams.keySet())
-        queryString += "${queryParamKey}=" + ${method.queryParams.get($queryParamKey)};
-        #end
-        httpRequest.setUrl("${method.endpoint}" + queryString);  // FIXME endpoint is not correct
-        #end
+            #if ($method.queryParams.size() > 0)
+                // create query string by concatenation
+                String queryString = "?";
+                #foreach($queryParamKey in $method.queryParams.keySet())
+                    queryString += "${queryParamKey}=" + ${method.queryParams.get($queryParamKey)};
+                #end
+                httpRequest.setUrl("${method.endpoint}" + queryString);  // FIXME endpoint is not correct
+            #end
 
-        #if ($method.body)
-        // set the body
-        httpRequest.setBody(${method.body.parameterName});
-        #end
+            #if ($method.body)
+                // set the body
+                httpRequest.setBody(${method.body.parameterName});
+            #end
 
-        // send the request through the pipeline
-        HttpResponse response = pipeline.sendSync(httpRequest, Context.NONE);
+            // send the request through the pipeline
+            HttpResponse response = pipeline.sendSync(httpRequest, Context.NONE);
 
-        #if ($method.methodReturnType != "void")
-        // TODO actual implementation!
-        return java.util.Arrays.asList("Hello", "World!");
-        #end
-    }
+            #if ($method.methodReturnType != "void")
+                // TODO actual implementation!
+                return java.util.Arrays.asList("Hello", "World!");
+            #end
+        }
 
-#end
+    #end
 }
