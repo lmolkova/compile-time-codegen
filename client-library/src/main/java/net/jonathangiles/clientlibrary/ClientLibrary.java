@@ -1,6 +1,7 @@
 package net.jonathangiles.clientlibrary;
 
 import com.azure.core.http.HttpPipelineBuilder;
+import com.azure.core.util.Context;
 import net.jonathangiles.clientlibrary.implementation.GeneratedServiceAPI;
 
 import java.util.List;
@@ -16,6 +17,6 @@ public class ClientLibrary {
     private final String endpoint = "foo";
 
     public List<String> getKeys(String name) {
-        return serviceAPI.getKeys(endpoint, name, "bar");
+        return serviceAPI.getKeys(endpoint, name, "vals", "pathValueHere", "bar", Context.NONE);
     }
 }

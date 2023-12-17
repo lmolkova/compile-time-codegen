@@ -1,3 +1,15 @@
+#set( $comma = "," ) ##
+
+#macro( concat $values $separator ) ##
+    #set( $s="" ) ##
+    #set( $v = "") ##
+    #foreach( $value in $values ) ##
+        #set( $v = $v + $s + $value ) ##
+        #set( $s = $separator ) ##
+    #end ##
+$v ##
+#end ##
+
 package ${packageName};
 
 #foreach($import in $imports)
@@ -18,16 +30,30 @@ public class ${serviceInterfaceImplShortName} implements ${serviceInterfaceShort
     }
 
     #foreach($method in $methods)
-        @Override public ${method.methodReturnType} ${method.methodName}(${method.getSimplifiedParameterString(true)}) {
+        #if(!$method.parameters.isEmpty())
+            #set($typedParamString = "")
+            #set($untypedParamString = "")
+            #set($separator="")
+            #foreach($param in $method.parameters)
+                #set($typedParamString = $typedParamString + $separator + $param.getType() + " " + $param.getName())
+                #set($untypedParamString = $untypedParamString + $separator + $param.getName())
+                #set($separator = ", ")
+            #end
+        #end
+
+        @Override public ${method.methodReturnType} ${method.methodName}(${typedParamString}) {
             #if ($method.methodReturnType != "void")
-                return ${method.methodName}(defaultPipeline, ${method.getSimplifiedParameterString(false)});
+                return ${method.methodName}(defaultPipeline, ${untypedParamString});
             #else
-                ${method.methodName}(defaultPipeline, ${method.getSimplifiedParameterString(false)});
+                ${method.methodName}(defaultPipeline, ${untypedParamString});
             #end
         }
 
-        public ${method.methodReturnType} ${method.methodName}(HttpPipeline pipeline, ${method.getSimplifiedParameterString(true)}) {
-            HttpRequest httpRequest = new HttpRequest(HttpMethod.${method.httpMethod}, "${method.endpoint}"); // FIXME endpoint is not correct
+        public ${method.methodReturnType} ${method.methodName}(HttpPipeline pipeline, ${typedParamString}) {
+            String host = ${method.host};
+
+            // create the request
+            HttpRequest httpRequest = new HttpRequest(HttpMethod.${method.httpMethod}, host);
 
             #if ($method.headers.size() > 0)
                 // set headers
@@ -38,22 +64,27 @@ public class ${serviceInterfaceImplShortName} implements ${serviceInterfaceShort
                 httpRequest.setHeaders(headers);
             #end
 
-            #if ($method.queryParams.size() > 0)
-                // create query string by concatenation
-                String queryString = "?";
-                #foreach($queryParamKey in $method.queryParams.keySet())
-                    queryString += "${queryParamKey}=" + ${method.queryParams.get($queryParamKey)};
-                #end
-                httpRequest.setUrl("${method.endpoint}" + queryString);  // FIXME endpoint is not correct
-            #end
-
             #if ($method.body)
                 // set the body
                 httpRequest.setBody(${method.body.parameterName});
             #end
 
             // send the request through the pipeline
-            HttpResponse response = pipeline.sendSync(httpRequest, Context.NONE);
+            HttpResponse response = pipeline.sendSync(httpRequest, context);
+
+            #if( !$method.expectedStatusCodes.isEmpty() )
+                // get the response status code and check if the response code was the expected value
+                final int responseCode = response.getStatusCode();
+                #if( $method.expectedStatusCodes.size() == 1 )
+                    boolean expectedResponse = responseCode == ${method.expectedStatusCodes.get(0)};
+                #else
+                    boolean expectedResponse = Arrays.binarySearch(new int[] { #concat( $method.expectedStatusCodes $comma) }, responseCode) > -1;
+                #end
+                if (!expectedResponse) {
+                    // TODO actual implementation!
+                    throw new RuntimeException("Unexpected response code: " + responseCode);
+                }
+            #end
 
             #if ($method.methodReturnType != "void")
                 // TODO actual implementation!

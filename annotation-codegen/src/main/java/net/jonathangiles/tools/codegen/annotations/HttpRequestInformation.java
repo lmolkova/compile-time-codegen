@@ -10,5 +10,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target(METHOD)
 public @interface HttpRequestInformation {
     HttpMethod method();
-    String path();
+    String path() default "";
+    String[] requestHeaders() default {};
+    int[] expectedStatusCodes() default {};
+    Class<?> returnValueWireType() default Void.class;
 }

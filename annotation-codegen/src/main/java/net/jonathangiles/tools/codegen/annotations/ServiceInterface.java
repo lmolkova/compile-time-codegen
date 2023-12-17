@@ -19,4 +19,6 @@ public @interface ServiceInterface {
      * @return the service name given to the interface.
      */
     String name();
+
+    String host() default "";
 }
