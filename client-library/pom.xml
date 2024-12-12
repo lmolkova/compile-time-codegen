@@ -41,7 +41,6 @@
           <generatedSourcesDirectory>${project.build.directory}/generated-sources/</generatedSourcesDirectory>
           <annotationProcessors>
             <annotationProcessor>net.jonathangiles.tools.codegen.AnnotationProcessor</annotationProcessor>
-            <annotationProcessor>net.jonathangiles.tools.codegen.AnnotationProcessorObs</annotationProcessor>
           </annotationProcessors>
         </configuration>
       </plugin>

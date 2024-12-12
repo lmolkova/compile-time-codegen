@@ -4,7 +4,6 @@ import com.azure.core.http.HttpPipeline;
 import com.azure.core.util.Context;
 import com.azure.core.util.tracing.InstrumentationScope;
 import net.jonathangiles.clientlibrary.implementation.GeneratedServiceAPI;
-import net.jonathangiles.tools.codegen.annotations.ServiceMethod;
 
 import java.util.List;
 
@@ -19,7 +18,6 @@ public class ClientLibrary {
 
     private final String endpoint = "foo";
 
-    @ServiceMethod(name = "getKeys")
     public List<String> getKeys(String name) {
         InstrumentationScope scope = pipeline.getInstrumentation().startScope("getKeys", Context.NONE);
         try {
