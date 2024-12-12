@@ -25,7 +25,7 @@
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-core</artifactId>
-      <version>1.37.0</version>
+      <version>1.55.0-beta.1</version>
     </dependency>
   </dependencies>
 
@@ -41,6 +41,7 @@
           <generatedSourcesDirectory>${project.build.directory}/generated-sources/</generatedSourcesDirectory>
           <annotationProcessors>
             <annotationProcessor>net.jonathangiles.tools.codegen.AnnotationProcessor</annotationProcessor>
+            <annotationProcessor>net.jonathangiles.tools.codegen.AnnotationProcessorObs</annotationProcessor>
           </annotationProcessors>
         </configuration>
       </plugin>

@@ -18,6 +18,7 @@ public class JavaPoetTemplateProcessor implements TemplateProcessor {
     private final ClassName HTTP_RESPONSE = ClassName.get("com.azure.core.http", "HttpResponse");
     private final ClassName HTTP_METHOD = ClassName.get("com.azure.core.http", "HttpMethod");
     private final ClassName CONTEXT = ClassName.get("com.azure.core.util", "Context");
+    private final ClassName INSTRUMENTATION_SCOPE = ClassName.get("com.azure.core.util.tracing", "InstrumentationScope");
 
     private TypeSpec.Builder classBuilder;
 
@@ -119,6 +120,10 @@ public class JavaPoetTemplateProcessor implements TemplateProcessor {
         }
 
         methodBuilder
+                .addStatement("$T scope = defaultPipeline.getInstrumentation().startScope(\"$L\", context)", INSTRUMENTATION_SCOPE, method.getMethodName())
+                .beginControlFlow("try");
+
+        methodBuilder
                 .addStatement("String host = $L", method.getHost())
                 .addCode("\n")
                 .addStatement("// create the request")
@@ -169,6 +174,14 @@ public class JavaPoetTemplateProcessor implements TemplateProcessor {
         if (!"void".equals(method.getMethodReturnType())) {
             methodBuilder.addStatement("return $T.asList(\"Hello\", \"World!\")", Arrays.class);
         }
+
+        methodBuilder
+                .nextControlFlow("catch ($T e)", RuntimeException.class)
+                .addStatement("scope.setError(e)")
+                .addStatement("throw e")
+                .nextControlFlow("finally")
+                .addStatement("scope.close()")
+                .endControlFlow();
 
         classBuilder.addMethod(methodBuilder.build());
     }
